@@ -65,14 +65,20 @@ int main()
 		rc = sqlite3_open("./emails.db", &insert_db);
 
 		if (rc)
-			return crow::response("501", "Failed To Open Database");
+			return crow::response("501", "Failed To Open Database"); // Return Internal Server Error
 
 		
 		const char *insert_email = "INSERT INTO emails (email) VALUES (?)";
 		rc = sqlite3_prepare_v2(insert_db, insert_email, -1, &insert_stmt, NULL);
 
-		if (rc != SQLITE_OK)
+		if (rc != SQLITE_OK) {
+			// Free Statement & DB
+			sqlite3_finalize(insert_stmt);
+			sqlite3_close(insert_db);	
+
+			// Return Internal Server Error
 			return crow::response("501", "Failed To Prepare Insertion");
+		}
 
 		// Bind, Execute, And Close SQL Statement & DB Connection
 		sqlite3_bind_text(insert_stmt, 1, user_email.c_str(), user_email.length(), SQLITE_TRANSIENT);
